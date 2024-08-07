@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disappointed Dad based on Workouts</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #ff7e5f, #feb47b);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100vh;
+    margin: 0;
+    position: relative;
+}
+.container {
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    position: relative;
+}
+input[type="file"] {
+    margin: 10px 0;
+}
+.button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Space between button and spinner */
+}
+button {
+    padding: 10px 20px;
+    background-color: #ff7e5f;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #feb47b;
+}
+.spinner {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #ff7e5f; /* Pink */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    display: none; /* Initially hidden */
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+footer {
+    background-color: #333;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    bottom: 0;
+}
+.image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 20px; /* Space between emojis and other elements */
+}
+.image-container span {
+    font-size: 3rem; /* Adjust size of emojis */
+}
+.output-container {
+    text-align: center; /* Center text within the container */
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 80%;
+    overflow: auto;
+    margin-bottom: 20px; /* Space below the output container */
+}
+.output-container pre {
+    white-space: pre-wrap; /* Preserve whitespace and line breaks */
+    word-wrap: break-word; /* Break long words */
+    margin: 0; /* Remove default margin */
+    font-size: 1rem; /* Adjust font size as needed */
+}
+#generateButton {
+    display: none; /* Hide button initially */
+}
+.image-generation-spinner {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #ff7e5f; /* Pink */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: 60%; /* Adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Disappointed dad judges workouts🏋️🏃🎾</h1>
+        <p>Built with Cloudflare☁️🔥 Workers AI🤖</p>
+        <div class="image-container">
+            <span>🏃‍♀️🤸‍♀️🏋️‍♀️🚴‍♀️</span> 
+        </div>
+        <input type="file" id="csvFileInput" accept=".csv">
+        <button onclick="processCSV()">Upload CSV of Strava workouts</button>
+        <div class="spinner" id="spinner"></div>
+    </div>
+    <div class="output-container" id="outputContainer">
+        <!-- Formatted output will be displayed here -->
+        <pre id="output"></pre>
+    </div>
+    <button id="generateButton" onclick="generateInspirationalImage()">Generate Inspirational Image</button>
+    <script>
+        document.getElementById('output').innerText = '';
+        document.getElementById('input-file').addEventListener('change', event => {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const text = e.target.result;
+                processCSV(text);
+            };
+
+            reader.readAsText(file);
+        });
+
+        function processCSV() {
+            const input = document.getElementById('csvFileInput');
+            const spinner = document.getElementById('spinner');
+            const file = input.files[0];
+
+            if (!file) {
+                alert('Please upload a CSV file.');
+                return;
+            }
+
+            // Show the spinner
+            spinner.style.display = 'block';
+
+            Papa.parse(file, {
+                complete: function(results) {
+                    const csvString = JSON.stringify(JSON.stringify(results.data));
+                    sendToWorker(csvString);
+                },
+                header: true // Assuming the first row is the header
+            }); 
+        }
+        async function sendToWorker(csvContent) {
+            try {
+                const response = await fetch('/strava', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({csvContent})
+                });
+
+                const result = await response.json();
+                console.log(JSON.stringify(result));
+                document.getElementById('output').textContent = JSON.stringify(result, null, 2); // Pretty format JSON with indentation
+                // Show the generate button
+                document.getElementById('generateButton').style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                // Hide the spinner
+                document.getElementById('spinner').style.display = 'none';
+            }
+        }
+        async function generateInspirationalImage(p) {
+            const spinner = document.getElementById('imageGenerationSpinner');
+            const outputContainer = document.getElementById('outputContainer');
+
+            // Show the spinner
+            spinner.style.display = 'block';
+            try {
+                const response = await fetch('/stravaimg', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({p})
+                });
+
+                const result = await response.json();
+                console.log(JSON.stringify(result));
+                document.getElementById('output').textContent = JSON.stringify(result, null, 2); // Pretty format JSON with indentation
+                document.getElementById('spinnerContainer').classList.add('hidden');
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                // Hide the spinner
+                document.getElementById('spinner').style.display = 'none';
+            }
+            outputContainer.appendChild(img);
+        }
+    </script>
+    <footer>
+        &copy; 2024 Made w/ ❤️ with Cloudflare in SF🌁
+    </footer>
+</body>
+</html>
+
