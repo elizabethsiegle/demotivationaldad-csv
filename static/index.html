@@ -60,13 +60,22 @@ button:hover {
     100% { transform: rotate(360deg); }
 }
 footer {
-    background-color: #333;
-    color: white;
+    background-color: #333; /* Dark background */
+    color: white; /* White text color */
     width: 100%;
     text-align: center;
     padding: 10px;
     position: fixed;
     bottom: 0;
+}
+
+footer a {
+    color: #ff7e5f; /* Light pink color for links */
+    text-decoration: none; /* Remove underline from links */
+}
+
+footer a:hover {
+    color: #feb47b; /* Change color on hover */
 }
 .image-container {
     display: flex;
@@ -215,7 +224,7 @@ footer {
         }
     </script>
     <footer>
-        &copy; 2024 Made w/ ❤️ with Cloudflare in SF🌁
+        &copy; 2024 Made w/ ❤️ with Cloudflare in SF🌁. <a href="https://github.com/elizabethsiegle/demotivationaldad-csv">Code here</a>
     </footer>
 </body>
 </html>
